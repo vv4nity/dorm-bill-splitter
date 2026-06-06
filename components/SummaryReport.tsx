@@ -192,6 +192,10 @@ export default function SummaryReport({ bills, onClose }: Props) {
               bd.bill.total_amount
             )} · ${bd.totalDays} person-days${
               bd.bill.shared_pct ? ` · ${bd.bill.shared_pct}% shared` : ""
+            }${
+              bd.bill.per_absent_day
+                ? ` · ₱${bd.bill.per_absent_day}/absent day`
+                : ""
             }${bd.bill.notes ? " · " + bd.bill.notes : ""}`
           );
           for (const l of bd.lines) {
@@ -511,6 +515,9 @@ function TypeSection({
                     <span className="text-xs text-ink-700 truncate">
                       {formatDateRange(bd.bill.period_start, bd.bill.period_end)}
                       {bd.bill.shared_pct ? ` · ${bd.bill.shared_pct}% shared` : ""}
+                      {bd.bill.per_absent_day
+                        ? ` · ₱${bd.bill.per_absent_day}/absent day`
+                        : ""}
                       {bd.bill.notes ? ` · ${bd.bill.notes}` : ""}
                     </span>
                     <span className="text-xs font-medium text-ink-900 flex-shrink-0 tnum">

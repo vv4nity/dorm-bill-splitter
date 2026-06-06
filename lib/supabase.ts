@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Bill, BillEntry, NewBillInput, Roommate, Unit } from "./types";
 import { generateCode } from "./unit";
-import { splitAmounts } from "./format";
+import { splitAmounts, daysBetween } from "./format";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -101,6 +101,8 @@ export async function getBill(id: string): Promise<Bill | null> {
 
 export async function createBill(input: NewBillInput, unitId: string): Promise<Bill> {
   const sharedPct = input.shared_pct ?? 0;
+  const perAbsentDay = input.per_absent_day ?? 0;
+  const periodDays = daysBetween(input.period_start, input.period_end);
 
   // Insert bill
   const { data: bill, error: billErr } = await supabase
@@ -112,17 +114,19 @@ export async function createBill(input: NewBillInput, unitId: string): Promise<B
       period_end: input.period_end,
       notes: input.notes || null,
       shared_pct: sharedPct,
+      per_absent_day: perAbsentDay,
       unit_id: unitId,
     })
     .select()
     .single();
   if (billErr) throw billErr;
 
-  // Calculate and insert entries (shared base split equally + usage by days)
+  // Calculate and insert entries: shared base (equal) + absent-day fees + usage by days
   const owed = splitAmounts(
     input.total_amount,
     sharedPct,
-    input.entries.map((e) => e.days_stayed)
+    input.entries.map((e) => e.days_stayed),
+    { periodDays, perAbsentDay }
   );
   const entries: Omit<BillEntry, "id">[] = input.entries.map((e, i) => ({
     bill_id: bill.id,

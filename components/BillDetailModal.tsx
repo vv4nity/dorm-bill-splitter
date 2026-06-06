@@ -166,6 +166,9 @@ export default function BillDetailModal({ bill, onClose, onDeleted }: Props) {
                 {bill.shared_pct
                   ? ` · ${bill.shared_pct}% shared base (split equally)`
                   : ""}
+                {bill.per_absent_day
+                  ? ` · ₱${bill.per_absent_day}/absent day`
+                  : ""}
               </div>
             </div>
 

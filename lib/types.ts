@@ -22,6 +22,7 @@ export interface Bill {
   period_end: string;
   notes: string | null;
   shared_pct?: number;
+  per_absent_day?: number;
   unit_id?: string;
   created_at: string;
   entries?: BillEntry[];
@@ -43,6 +44,7 @@ export interface NewBillInput {
   period_end: string;
   notes: string;
   shared_pct: number;
+  per_absent_day: number;
   entries: {
     roommate_id: string;
     roommate_name: string;

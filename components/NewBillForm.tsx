@@ -22,13 +22,15 @@ export default function NewBillForm({ roommates, unitId, onCreated }: Props) {
   const [notes, setNotes] = useState("");
   const [days, setDays] = useState<Record<string, string>>({});
   const [sharedPctStr, setSharedPctStr] = useState("25");
+  const [perAbsentDayStr, setPerAbsentDayStr] = useState("5");
   const [saving, setSaving] = useState(false);
 
-  // Shared base only applies to electricity (fridge, wifi, standby load).
-  const sharedPct =
-    type === "electricity"
-      ? Math.min(Math.max(parseFloat(sharedPctStr) || 0, 0), 100)
-      : 0;
+  // Shared base & absent-day fee only apply to electricity.
+  const isElectricity = type === "electricity";
+  const sharedPct = isElectricity
+    ? Math.min(Math.max(parseFloat(sharedPctStr) || 0, 0), 100)
+    : 0;
+  const perAbsentDay = isElectricity ? Math.max(parseFloat(perAbsentDayStr) || 0, 0) : 0;
 
   const totalDays = useMemo(
     () =>
@@ -44,13 +46,16 @@ export default function NewBillForm({ roommates, unitId, onCreated }: Props) {
 
   const breakdown = useMemo(() => {
     const dayList = roommates.map((r) => parseInt(days[r.id] || "0", 10) || 0);
-    const owedList = splitAmounts(amountNum, sharedPct, dayList);
+    const owedList = splitAmounts(amountNum, sharedPct, dayList, {
+      periodDays,
+      perAbsentDay,
+    });
     return roommates.map((r, i) => ({
       roommate: r,
       days: dayList[i],
       owed: owedList[i] ?? 0,
     }));
-  }, [roommates, days, amountNum, sharedPct]);
+  }, [roommates, days, amountNum, sharedPct, periodDays, perAbsentDay]);
 
   const baseAmount = amountNum * (sharedPct / 100);
   const basePerPerson = roommates.length > 0 ? baseAmount / roommates.length : 0;
@@ -78,6 +83,7 @@ export default function NewBillForm({ roommates, unitId, onCreated }: Props) {
         period_end: periodEnd,
         notes,
         shared_pct: sharedPct,
+        per_absent_day: perAbsentDay,
         entries: roommates.map((r) => ({
           roommate_id: r.id,
           roommate_name: r.name,
@@ -193,18 +199,21 @@ export default function NewBillForm({ roommates, unitId, onCreated }: Props) {
         </p>
       )}
 
-      {/* Shared base — electricity only (fridge, wifi, standby) */}
-      {type === "electricity" && (
-        <div className="mb-5 rounded-2xl border border-cream-200 bg-cream-50 p-4">
+      {/* Electricity fairness — shared base + absent-day fee */}
+      {isElectricity && (
+        <div className="mb-5 rounded-2xl border border-cream-200 bg-cream-50 p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Refrigerator className="w-4 h-4 text-forest-600 flex-shrink-0" />
+            <h3 className="text-sm font-semibold text-ink-900">Electricity fairness</h3>
+          </div>
+
+          {/* Shared base % */}
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 min-w-0">
-              <Refrigerator className="w-4 h-4 text-forest-600 flex-shrink-0" />
-              <div className="min-w-0">
-                <h3 className="text-sm font-semibold text-ink-900">Shared base</h3>
-                <p className="text-xs text-ink-500">
-                  Fridge, wifi &amp; standby — split equally by everyone.
-                </p>
-              </div>
+            <div className="min-w-0">
+              <p className="text-sm text-ink-800">Shared base</p>
+              <p className="text-xs text-ink-500">
+                Fridge, wifi &amp; standby — split equally.
+              </p>
             </div>
             <div className="flex items-center gap-1 flex-shrink-0">
               <input
@@ -219,15 +228,52 @@ export default function NewBillForm({ roommates, unitId, onCreated }: Props) {
               <span className="text-ink-500 text-sm">%</span>
             </div>
           </div>
-          {amountNum > 0 && sharedPct > 0 && roommates.length > 0 && (
-            <p className="text-xs text-ink-500 mt-3 pt-3 border-t border-cream-200">
-              {formatPHP(baseAmount)} shared ÷ {roommates.length} ={" "}
-              <span className="text-ink-800 font-medium">
-                {formatPHP(basePerPerson)} each
-              </span>
-              , rest ({formatPHP(amountNum - baseAmount)}) by days.
-            </p>
-          )}
+
+          {/* Absent-day fee */}
+          <div className="flex items-center justify-between gap-3 pt-3 border-t border-cream-200">
+            <div className="min-w-0">
+              <p className="text-sm text-ink-800">Absent-day fee</p>
+              <p className="text-xs text-ink-500">
+                Charged to whoever was away that day.
+              </p>
+            </div>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <span className="text-ink-500 text-sm">₱</span>
+              <input
+                type="number"
+                inputMode="decimal"
+                min="0"
+                step="0.5"
+                value={perAbsentDayStr}
+                onChange={(e) => setPerAbsentDayStr(e.target.value)}
+                className="w-16 text-right text-lg font-serif tnum bg-white rounded-lg px-2 py-1 border border-cream-200 focus:border-forest-600/40 outline-none"
+              />
+              <span className="text-ink-500 text-xs">/day</span>
+            </div>
+          </div>
+
+          {amountNum > 0 &&
+            roommates.length > 0 &&
+            (sharedPct > 0 || perAbsentDay > 0) && (
+              <p className="text-xs text-ink-500 pt-3 border-t border-cream-200">
+                {sharedPct > 0 && (
+                  <>
+                    {formatPHP(baseAmount)} base ÷ {roommates.length} ={" "}
+                    <span className="text-ink-800 font-medium">
+                      {formatPHP(basePerPerson)} each
+                    </span>
+                    .{" "}
+                  </>
+                )}
+                {perAbsentDay > 0 && periodDays > 0 && (
+                  <>
+                    {formatPHP(perAbsentDay)}/absent day (of {periodDays}) shifts
+                    cost to absentees.{" "}
+                  </>
+                )}
+                Rest by days · total stays {formatPHP(amountNum)}.
+              </p>
+            )}
         </div>
       )}
 

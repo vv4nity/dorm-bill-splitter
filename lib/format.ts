@@ -32,25 +32,48 @@ export function daysBetween(start: string, end: string): number {
   return Math.round((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 }
 
-// Split a bill into a shared base (split equally among everyone, including those
-// with 0 days) plus a usage portion allocated by person-days. Returns the amount
-// owed per entry, in the same order as `days`. If nobody stayed any days, the
-// whole bill is split equally.
+// Split a bill fairly and exactly (shares always sum to `total`):
+//   1. a shared base (sharedPct of the bill) split equally among everyone,
+//      including those with 0 days — covers fridge/wifi/standby load;
+//   2. an absent-day fee (perAbsentDay × each person's absent days) charged to
+//      whoever was away — shifts cost onto absentees without changing the total;
+//   3. the remainder allocated by person-days (presence).
+// If the base + absent fees would exceed the bill, the absent fees are scaled
+// down to fit. If nobody stayed any days, the remainder is split equally.
 export function splitAmounts(
   total: number,
   sharedPct: number,
-  days: number[]
+  days: number[],
+  opts: { periodDays?: number; perAbsentDay?: number } = {}
 ): number[] {
   const n = days.length;
   if (n === 0) return [];
   const pct = Math.min(Math.max(sharedPct, 0), 100);
+  const periodDays = Math.max(0, opts.periodDays ?? 0);
+  const perAbsentDay = Math.max(0, opts.perAbsentDay ?? 0);
+
   const base = total * (pct / 100);
-  const usage = total - base;
-  const totalDays = days.reduce((s, d) => s + d, 0);
   const basePer = base / n;
-  return days.map((d) => {
-    const usageShare = totalDays > 0 ? (d / totalDays) * usage : usage / n;
-    return Math.round((basePer + usageShare) * 100) / 100;
+  const totalDays = days.reduce((s, d) => s + d, 0);
+
+  const rawAbsent = days.map(
+    (d) => Math.max(0, periodDays - d) * perAbsentDay
+  );
+  const absentTotal = rawAbsent.reduce((s, a) => s + a, 0);
+
+  let usagePool = total - base - absentTotal;
+  let absent = rawAbsent;
+  if (usagePool < 0) {
+    // Base + absent fees exceed the bill: scale the fees to fit, no usage pool.
+    const available = Math.max(0, total - base);
+    const scale = absentTotal > 0 ? available / absentTotal : 0;
+    absent = rawAbsent.map((a) => a * scale);
+    usagePool = 0;
+  }
+
+  return days.map((d, i) => {
+    const usageShare = totalDays > 0 ? (d / totalDays) * usagePool : usagePool / n;
+    return Math.round((basePer + absent[i] + usageShare) * 100) / 100;
   });
 }
 

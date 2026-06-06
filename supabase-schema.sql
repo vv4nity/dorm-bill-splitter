@@ -45,6 +45,10 @@ alter table bills add column if not exists unit_id uuid references units(id) on 
 -- wifi, standby load). Split equally among everyone; the rest goes by person-days.
 alter table bills add column if not exists shared_pct numeric(5, 2) not null default 0;
 
+-- Fairness: peso fee per absent day, charged to whoever was away (electricity).
+-- Redistributes cost onto absentees; the bill total is unchanged.
+alter table bills add column if not exists per_absent_day numeric(10, 2) not null default 0;
+
 create index if not exists bill_entries_bill_id_idx on bill_entries(bill_id);
 create index if not exists bills_period_end_idx on bills(period_end desc);
 create index if not exists roommates_unit_id_idx on roommates(unit_id);
