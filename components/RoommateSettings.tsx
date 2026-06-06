@@ -80,7 +80,7 @@ export default function RoommateSettings({ roommates, unitId, onChange }: Props)
             {editingId === r.id ? (
               <>
                 <input
-                  className="flex-1 bg-transparent border-b border-forest-600 outline-none text-sm"
+                  className="flex-1 min-w-0 bg-transparent border-b border-forest-600 outline-none text-sm"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
                   autoFocus
@@ -109,7 +109,7 @@ export default function RoommateSettings({ roommates, unitId, onChange }: Props)
                 <span className="w-7 h-7 rounded-full bg-cream-100 border border-cream-200 text-ink-700 text-xs font-semibold flex items-center justify-center flex-shrink-0">
                   {r.name.trim().charAt(0).toUpperCase()}
                 </span>
-                <span className="flex-1 text-sm text-ink-800">{r.name}</span>
+                <span className="flex-1 min-w-0 truncate text-sm text-ink-800">{r.name}</span>
                 <button
                   onClick={() => {
                     setEditingId(r.id);

@@ -85,17 +85,17 @@ export default function HomePage() {
     <main className="relative min-h-screen">
       {/* Header */}
       <header className="relative px-6 lg:px-10 pt-12 lg:pt-16 pb-8 max-w-6xl mx-auto animate-fade-up">
-        <div className="flex items-center justify-between gap-3 mb-5">
-          <div className="inline-flex items-center gap-2.5 pl-1.5 pr-3.5 py-1.5 rounded-full bg-white/70 border border-cream-200 shadow-soft backdrop-blur-sm">
-            <span className="w-7 h-7 rounded-full bg-ink-grad text-cream-50 flex items-center justify-center shadow-inner-light">
+        <div className="flex items-center justify-between gap-2 sm:gap-3 mb-5">
+          <div className="inline-flex min-w-0 items-center gap-2.5 pl-1.5 pr-3.5 py-1.5 rounded-full bg-white/70 border border-cream-200 shadow-soft backdrop-blur-sm">
+            <span className="w-7 h-7 flex-shrink-0 rounded-full bg-ink-grad text-cream-50 flex items-center justify-center shadow-inner-light">
               <Receipt className="w-3.5 h-3.5" />
             </span>
-            <span className="text-[13px] font-semibold text-ink-800 max-w-[40vw] sm:max-w-xs truncate">
+            <span className="text-[13px] font-semibold text-ink-800 truncate">
               {unit.name}
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <button
               onClick={copyCode}
               title="Copy unit code to share"
@@ -144,13 +144,13 @@ export default function HomePage() {
       ) : (
         <div className="relative max-w-6xl mx-auto px-6 lg:px-10 pb-24 grid lg:grid-cols-[1fr_1.1fr] gap-6">
           {/* Left: settings + form */}
-          <div className="space-y-6 animate-fade-up" style={{ animationDelay: "80ms" }}>
+          <div className="min-w-0 space-y-6 animate-fade-up" style={{ animationDelay: "80ms" }}>
             <RoommateSettings roommates={roommates} unitId={unit.id} onChange={load} />
             <NewBillForm roommates={roommates} unitId={unit.id} onCreated={load} />
           </div>
 
           {/* Right: history */}
-          <div className="animate-fade-up" style={{ animationDelay: "160ms" }}>
+          <div className="min-w-0 animate-fade-up" style={{ animationDelay: "160ms" }}>
             <div className="flex items-baseline justify-between mb-4">
               <h2 className="font-serif text-2xl text-ink-900">History</h2>
               {bills.length > 0 && (

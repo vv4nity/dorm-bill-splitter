@@ -144,14 +144,14 @@ export default function NewBillForm({ roommates, unitId, onCreated }: Props) {
             placeholder="0.00"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="flex-1 font-serif text-3xl bg-transparent outline-none placeholder:text-ink-400 tnum"
+            className="flex-1 min-w-0 font-serif text-3xl bg-transparent outline-none placeholder:text-ink-400 tnum"
           />
         </div>
       </label>
 
       {/* Period */}
-      <div className="grid grid-cols-2 gap-3 mb-5">
-        <label className="block">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+        <label className="block min-w-0">
           <span className="text-xs uppercase tracking-wider text-ink-500 font-medium flex items-center gap-1">
             <Calendar className="w-3 h-3" /> Period start
           </span>
@@ -159,10 +159,10 @@ export default function NewBillForm({ roommates, unitId, onCreated }: Props) {
             type="date"
             value={periodStart}
             onChange={(e) => setPeriodStart(e.target.value)}
-            className="mt-1.5 w-full text-sm border border-cream-200 rounded-xl px-3 py-2.5 bg-cream-50 focus:bg-white focus:border-forest-600/40 transition-colors"
+            className="mt-1.5 w-full min-w-0 text-sm border border-cream-200 rounded-xl px-3 py-2.5 bg-cream-50 focus:bg-white focus:border-forest-600/40 transition-colors"
           />
         </label>
-        <label className="block">
+        <label className="block min-w-0">
           <span className="text-xs uppercase tracking-wider text-ink-500 font-medium flex items-center gap-1">
             <Calendar className="w-3 h-3" /> Period end
           </span>
@@ -170,7 +170,7 @@ export default function NewBillForm({ roommates, unitId, onCreated }: Props) {
             type="date"
             value={periodEnd}
             onChange={(e) => setPeriodEnd(e.target.value)}
-            className="mt-1.5 w-full text-sm border border-cream-200 rounded-xl px-3 py-2.5 bg-cream-50 focus:bg-white focus:border-forest-600/40 transition-colors"
+            className="mt-1.5 w-full min-w-0 text-sm border border-cream-200 rounded-xl px-3 py-2.5 bg-cream-50 focus:bg-white focus:border-forest-600/40 transition-colors"
           />
         </label>
       </div>
@@ -194,9 +194,11 @@ export default function NewBillForm({ roommates, unitId, onCreated }: Props) {
             {breakdown.map(({ roommate, days: d, owed }) => (
               <div
                 key={roommate.id}
-                className="flex items-center gap-3 bg-white/70 rounded-xl px-3 py-2 ring-1 ring-inset ring-white/50"
+                className="flex items-center gap-2 sm:gap-3 bg-white/70 rounded-xl px-3 py-2 ring-1 ring-inset ring-white/50"
               >
-                <span className="flex-1 text-sm text-ink-900">{roommate.name}</span>
+                <span className="flex-1 min-w-0 truncate text-sm text-ink-900">
+                  {roommate.name}
+                </span>
                 <input
                   type="number"
                   inputMode="numeric"
@@ -207,10 +209,10 @@ export default function NewBillForm({ roommates, unitId, onCreated }: Props) {
                   onChange={(e) =>
                     setDays((prev) => ({ ...prev, [roommate.id]: e.target.value }))
                   }
-                  className="w-16 text-sm text-right bg-cream-50 rounded px-2 py-1 border border-cream-200 focus:bg-white"
+                  className="w-14 flex-shrink-0 text-sm text-right bg-cream-50 rounded px-2 py-1 border border-cream-200 focus:bg-white"
                 />
-                <span className="text-xs text-ink-500">days</span>
-                <span className={`w-24 text-right text-sm font-semibold tnum ${palette.ink}`}>
+                <span className="text-xs text-ink-500 flex-shrink-0">days</span>
+                <span className={`w-[4.5rem] sm:w-24 flex-shrink-0 text-right text-sm font-semibold tnum ${palette.ink}`}>
                   {amountNum > 0 && totalDays > 0 ? formatPHP(owed) : "—"}
                 </span>
               </div>
