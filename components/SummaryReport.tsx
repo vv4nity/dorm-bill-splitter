@@ -419,26 +419,34 @@ export default function SummaryReport({ bills, onClose }: Props) {
               </div>
 
               {/* Detailed sections */}
-              {includeWater && (
-                <TypeSection
-                  title="Water"
-                  Icon={Droplets}
-                  accent="ocean"
-                  data={water}
-                  showPerPerson={isBoth}
-                  wide={!isBoth}
-                />
-              )}
-              {includeElec && (
-                <TypeSection
-                  title="Electricity"
-                  Icon={Zap}
-                  accent="amber"
-                  data={electricity}
-                  showPerPerson={isBoth}
-                  wide={!isBoth}
-                />
-              )}
+              {includeWater &&
+                (water.total > 0 ? (
+                  <TypeSection
+                    title="Water"
+                    Icon={Droplets}
+                    accent="ocean"
+                    data={water}
+                    showPerPerson={isBoth}
+                    wide={!isBoth}
+                  />
+                ) : (
+                  isBoth && <EmptyTypeSection title="Water" Icon={Droplets} accent="ocean" />
+                ))}
+              {includeElec &&
+                (electricity.total > 0 ? (
+                  <TypeSection
+                    title="Electricity"
+                    Icon={Zap}
+                    accent="amber"
+                    data={electricity}
+                    showPerPerson={isBoth}
+                    wide={!isBoth}
+                  />
+                ) : (
+                  isBoth && (
+                    <EmptyTypeSection title="Electricity" Icon={Zap} accent="amber" />
+                  )
+                ))}
 
               <p className="mt-6 text-[10px] text-ink-400 text-center lg:col-span-2">
                 Dorm Bill Splitter · person-days method
@@ -447,6 +455,32 @@ export default function SummaryReport({ bills, onClose }: Props) {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function EmptyTypeSection({
+  title,
+  Icon,
+  accent,
+}: {
+  title: string;
+  Icon: typeof Zap;
+  accent: "ocean" | "amber";
+}) {
+  const ink = accent === "ocean" ? "text-ocean-mid" : "text-amber-mid";
+  const tint = accent === "ocean" ? "bg-ocean-tint" : "bg-amber-tint";
+  return (
+    <div className="py-5 lg:py-2.5 border-b border-cream-200 last:border-0 lg:border-b-0 lg:self-start">
+      <div className="flex items-center gap-2 mb-4 lg:mb-2">
+        <span className={`w-7 h-7 rounded-lg ${tint} ${ink} flex items-center justify-center`}>
+          <Icon className="w-4 h-4" />
+        </span>
+        <h3 className="font-serif text-xl text-ink-900">{title}</h3>
+      </div>
+      <p className="text-sm text-ink-500 rounded-xl border border-dashed border-cream-200 bg-white/50 px-4 py-6 text-center">
+        No {title.toLowerCase()} bills in the selected months.
+      </p>
     </div>
   );
 }
