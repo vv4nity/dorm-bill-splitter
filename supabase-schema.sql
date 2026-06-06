@@ -41,6 +41,10 @@ create table if not exists bill_entries (
 alter table roommates add column if not exists unit_id uuid references units(id) on delete cascade;
 alter table bills add column if not exists unit_id uuid references units(id) on delete cascade;
 
+-- Fairness: percentage of a bill treated as an equally-shared base (e.g. fridge,
+-- wifi, standby load). Split equally among everyone; the rest goes by person-days.
+alter table bills add column if not exists shared_pct numeric(5, 2) not null default 0;
+
 create index if not exists bill_entries_bill_id_idx on bill_entries(bill_id);
 create index if not exists bills_period_end_idx on bills(period_end desc);
 create index if not exists roommates_unit_id_idx on roommates(unit_id);

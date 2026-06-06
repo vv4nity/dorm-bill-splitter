@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Receipt, Loader2, Copy, Check, LogOut } from "lucide-react";
+import { Receipt, Loader2, Copy, Check, LogOut, CalendarRange } from "lucide-react";
 import type { Bill, Roommate, Unit } from "@/lib/types";
 import { getBills, getRoommates } from "@/lib/supabase";
 import { getStoredUnit, clearStoredUnit } from "@/lib/unit";
@@ -9,6 +9,7 @@ import RoommateSettings from "@/components/RoommateSettings";
 import NewBillForm from "@/components/NewBillForm";
 import BillHistory from "@/components/BillHistory";
 import BillDetailModal from "@/components/BillDetailModal";
+import SummaryReport from "@/components/SummaryReport";
 import UnitGate from "@/components/UnitGate";
 
 export default function HomePage() {
@@ -18,6 +19,7 @@ export default function HomePage() {
   const [bills, setBills] = useState<Bill[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
+  const [showSummary, setShowSummary] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -151,12 +153,22 @@ export default function HomePage() {
 
           {/* Right: history */}
           <div className="min-w-0 animate-fade-up" style={{ animationDelay: "160ms" }}>
-            <div className="flex items-baseline justify-between mb-4">
-              <h2 className="font-serif text-2xl text-ink-900">History</h2>
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div className="flex items-baseline gap-2 min-w-0">
+                <h2 className="font-serif text-2xl text-ink-900">History</h2>
+                {bills.length > 0 && (
+                  <span className="text-xs text-ink-500 tnum">
+                    {bills.length} {bills.length === 1 ? "bill" : "bills"}
+                  </span>
+                )}
+              </div>
               {bills.length > 0 && (
-                <span className="text-xs text-ink-500 tnum">
-                  {bills.length} {bills.length === 1 ? "bill" : "bills"}
-                </span>
+                <button
+                  onClick={() => setShowSummary(true)}
+                  className="flex-shrink-0 inline-flex items-center gap-1.5 text-xs font-semibold text-forest-700 bg-white border border-cream-200 shadow-soft hover:border-forest-600/40 hover:shadow-card px-3 py-2 rounded-full transition-all"
+                >
+                  <CalendarRange className="w-3.5 h-3.5" /> Summary
+                </button>
               )}
             </div>
             <BillHistory bills={bills} onSelect={setSelectedBill} />
@@ -173,6 +185,10 @@ export default function HomePage() {
             load();
           }}
         />
+      )}
+
+      {showSummary && (
+        <SummaryReport bills={bills} onClose={() => setShowSummary(false)} />
       )}
 
       <footer className="relative text-center py-10 text-xs text-ink-400">

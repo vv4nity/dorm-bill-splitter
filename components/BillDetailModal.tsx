@@ -163,12 +163,19 @@ export default function BillDetailModal({ bill, onClose, onDeleted }: Props) {
               </div>
               <div className="text-xs text-ink-500 mt-1">
                 Split across {totalDays} person-days
+                {bill.shared_pct
+                  ? ` · ${bill.shared_pct}% shared base (split equally)`
+                  : ""}
               </div>
             </div>
 
             <div className="mt-5 space-y-3">
               {entries.map((e) => {
-                const pct = totalDays > 0 ? (e.days_stayed / totalDays) * 100 : 0;
+                // Cost share (with a shared base this differs from day-share).
+                const pct =
+                  bill.total_amount > 0
+                    ? (e.amount_owed / bill.total_amount) * 100
+                    : 0;
                 return (
                   <div key={e.id}>
                     <div className="flex items-baseline justify-between mb-1">

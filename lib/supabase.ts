@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Bill, BillEntry, NewBillInput, Roommate, Unit } from "./types";
 import { generateCode } from "./unit";
+import { splitAmounts } from "./format";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -99,7 +100,7 @@ export async function getBill(id: string): Promise<Bill | null> {
 }
 
 export async function createBill(input: NewBillInput, unitId: string): Promise<Bill> {
-  const totalDays = input.entries.reduce((s, e) => s + e.days_stayed, 0);
+  const sharedPct = input.shared_pct ?? 0;
 
   // Insert bill
   const { data: bill, error: billErr } = await supabase
@@ -110,22 +111,25 @@ export async function createBill(input: NewBillInput, unitId: string): Promise<B
       period_start: input.period_start,
       period_end: input.period_end,
       notes: input.notes || null,
+      shared_pct: sharedPct,
       unit_id: unitId,
     })
     .select()
     .single();
   if (billErr) throw billErr;
 
-  // Calculate and insert entries
-  const entries: Omit<BillEntry, "id">[] = input.entries.map((e) => ({
+  // Calculate and insert entries (shared base split equally + usage by days)
+  const owed = splitAmounts(
+    input.total_amount,
+    sharedPct,
+    input.entries.map((e) => e.days_stayed)
+  );
+  const entries: Omit<BillEntry, "id">[] = input.entries.map((e, i) => ({
     bill_id: bill.id,
     roommate_id: e.roommate_id,
     roommate_name: e.roommate_name,
     days_stayed: e.days_stayed,
-    amount_owed:
-      totalDays > 0
-        ? Math.round(((e.days_stayed / totalDays) * input.total_amount) * 100) / 100
-        : 0,
+    amount_owed: owed[i],
   }));
 
   const { data: insertedEntries, error: entryErr } = await supabase
